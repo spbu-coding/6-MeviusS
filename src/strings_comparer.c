@@ -84,6 +84,7 @@ void clear_memory(strings_array_t *array, array_size_t array_size) {
 int allocate_memory(strings_array_t *array, int number_of_strings) {
     if(((*array) = malloc(sizeof(char *) * number_of_strings)) == NULL) {
         printf("Cannot allocate memory");
+        free(*array);
         return -1;
     }
     for (int i = 0; i < number_of_strings; i++) {
@@ -145,8 +146,6 @@ int main(int argc,char **argv) {
     reading_strings(arguments.input_filename, array, arguments.number_of_strings);
     arguments.sort_func(array, arguments.number_of_strings, arguments.comparer_type);
     writing_strings(arguments.output_filename, array, arguments.number_of_strings);
-    for(int i = 0; i < arguments.number_of_strings; i++){
-        printf("%s", array[i]);
-    }
+    clear_memory(&array, arguments.number_of_strings);
     return 0;
 }
