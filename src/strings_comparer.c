@@ -141,7 +141,7 @@ int main(int argc,char **argv) {
     int result = getting_the_arguments(argc, argv, &arguments);
     if (result != 0)
         return result;
-    strings_array_t array = malloc(sizeof (char *) * arguments.number_of_strings);
+    strings_array_t array;
     allocate_memory(&array, arguments.number_of_strings);
     reading_strings(arguments.input_filename, array, arguments.number_of_strings);
     arguments.sort_func(array, arguments.number_of_strings, arguments.comparer_type);
