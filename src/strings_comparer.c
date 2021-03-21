@@ -31,7 +31,7 @@ int getting_the_arguments(int argc, char **argv, input_arguments *arguments) {
         arg_buf[i] = '1';
     }
     strncpy(arg_buf, argv[1], strlen(arg_buf));
-    int i = 0;
+    size_t i = 0;
     size_t length_of_buf = strlen(arg_buf);
     for (; i < length_of_buf ; i++) {
         if (arg_buf[i] < '0' || arg_buf[i] > '9') {
