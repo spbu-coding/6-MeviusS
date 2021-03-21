@@ -1,12 +1,6 @@
-#include <stdio.h>
 #include <stdlib.h>
-
-#pragma once
-
 #include <string.h>
-
 #define  MAX_INPUT_STRING_SIZE 1000
-
 #define ASCII_LENGTH 128
 
 typedef int (*comparator_func_t)(const char*, const char*);
@@ -62,7 +56,7 @@ void swap(char **str_1, char **str_2) {
     *str_2 = temp;
 }
 
-void bobble(strings_array_t array, array_size_t size, comparator_func_t cmp) {
+void bubble(strings_array_t array, array_size_t size, comparator_func_t cmp) {
     for(size_t i = 0; i < size; i++) {
         for(size_t j = 0; j < size; j++) {
             if(cmp(array[j], array[i]) < 0) {
