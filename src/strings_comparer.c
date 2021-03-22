@@ -71,6 +71,7 @@ int getting_the_arguments(int argc, char **argv, input_arguments *arguments) {
     }
     return 0;
 }
+
 void clear_memory(strings_array_t *array, array_size_t array_size) {
     for(array_size_t i = 0; i < array_size; i++) {
         free((*array)[i]);
@@ -96,11 +97,10 @@ int allocate_memory(strings_array_t *array, int number_of_strings) {
 
 int reading_strings(const char *filename, strings_array_t array, int number_of_strings) {
     FILE *fp;
-    if((fp = fopen(filename, "r")) == NULL) {
+    if((fp = fopen(filename, "rt")) == NULL) {
         printf("File was not opened ");
         return -1;
     }
-
     for(int i = 0; i < number_of_strings; i++) {
         if((fgets(array[i], MAX_INPUT_STRING_SIZE, fp)) == NULL) {
             printf("Cannot get strings ");
@@ -119,12 +119,12 @@ int reading_strings(const char *filename, strings_array_t array, int number_of_s
 
 int writing_strings(const char *filename, strings_array_t array, int number_of_strings) {
     FILE *mf;
-    if((mf = fopen(filename, "w")) == NULL) {
+    if((mf = fopen(filename, "wt")) == NULL) {
         printf("File was not opened ");
         return -1;
     }
     for(int i = 0; i < number_of_strings; i++) {
-        if((fputs(array[i], mf)) == EOF) {
+        if((fputs(array[i], mf)) == -1) {
             printf("Cannot write strings ");
             return -1;
         }
@@ -135,14 +135,23 @@ int writing_strings(const char *filename, strings_array_t array, int number_of_s
 
 int main(int argc,char **argv) {
     input_arguments arguments;
-    int result = getting_the_arguments(argc, argv, &arguments);
-    if (result != 0)
-        return result;
-    strings_array_t array;
-    allocate_memory(&array, arguments.number_of_strings);
-    reading_strings(arguments.input_filename, array, arguments.number_of_strings);
+    int input_result = getting_the_arguments(argc, argv, &arguments);
+    if (input_result != 0)
+        return input_result;
+    strings_array_t array = NULL;
+    int allocation_result = allocate_memory(&array, arguments.number_of_strings);
+    if (allocation_result != 0) {
+        return allocation_result;
+    }
+    int reading_result = reading_strings(arguments.input_filename, array, arguments.number_of_strings);
+    if (reading_result != 0) {
+        return reading_result;
+    }
     arguments.sort_func(array, arguments.number_of_strings, arguments.comparer_type);
-    writing_strings(arguments.output_filename, array, arguments.number_of_strings);
+    int writing_result = writing_strings(arguments.output_filename, array, arguments.number_of_strings);
+    if (writing_result != 0) {
+        return writing_result;
+    }
     clear_memory(&array, arguments.number_of_strings);
     return 0;
 }
