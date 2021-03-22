@@ -21,28 +21,25 @@ typedef struct {
     comparator_func_t comparer_type;
 } input_arguments;
 
+int is_a_number(const char *array) {
+    for (int i = 0; ; i++) {
+        if (array[i] == 0)
+            return 1;
+        if (array[i] < '0' || array[i] > '9')
+            return 0;
+    }
+}
+
 int getting_the_arguments(int argc, char **argv, input_arguments *arguments) {
     if (argc != NUMBER_OF_ARGS) {
         printf("Incorrect number of parameters ");
         return -1;
     }
-    char arg_buf[MAX_INPUT_STRING_SIZE];
-    for (int i = 0; i < MAX_INPUT_STRING_SIZE; i++) {
-        arg_buf[i] = '1';
-    }
-    strncpy(arg_buf, argv[1], strlen(arg_buf));
-    size_t i = 0;
-    size_t length_of_buf = strlen(arg_buf);
-    for (; i < length_of_buf ; i++) {
-        if (arg_buf[i] < '0' || arg_buf[i] > '9') {
-            printf("First parameter must be only a number ");
-            break;
-        }
-    }
-    if (length_of_buf > i) {
-        printf("First parameter must be only a number ");
+    if (!is_a_number(argv[1])) {
+        printf("First parameter must be a positive number ");
         return -1;
     }
+
     arguments->number_of_strings = (int) strtoll(argv[1], NULL, 10);
     if (arguments->number_of_strings < 0) {
         printf("First parameter must be a positive number ");
@@ -61,7 +58,7 @@ int getting_the_arguments(int argc, char **argv, input_arguments *arguments) {
     } else if (strcmp(argv[4], "radix") == 0) {
         arguments->sort_func = radix;
     } else {
-        printf("Incorrect sorting name");
+        printf("Incorrect sorting name ");
         return -1;
     }
     if (strcmp(argv[5], "asc") == 0) {
@@ -69,7 +66,7 @@ int getting_the_arguments(int argc, char **argv, input_arguments *arguments) {
     } else if (strcmp(argv[5], "des") == 0) {
         arguments->comparer_type = des_comparer_type;
     } else {
-        printf("Incorrect comparer type");
+        printf("Incorrect comparer type ");
         return -1;
     }
     return 0;
@@ -83,13 +80,13 @@ void clear_memory(strings_array_t *array, array_size_t array_size) {
 
 int allocate_memory(strings_array_t *array, int number_of_strings) {
     if(((*array) = malloc(sizeof(char *) * number_of_strings)) == NULL) {
-        printf("Cannot allocate memory");
+        printf("Cannot allocate memory ");
         free(*array);
         return -1;
     }
     for (int i = 0; i < number_of_strings; i++) {
         if (((*array)[i] = malloc(sizeof(char) * MAX_INPUT_STRING_SIZE)) == NULL) {
-            printf("Cannot allocate memory");
+            printf("Cannot allocate memory ");
             clear_memory(array, i);
             return -1;
         }
@@ -100,13 +97,13 @@ int allocate_memory(strings_array_t *array, int number_of_strings) {
 int reading_strings(const char *filename, strings_array_t array, int number_of_strings) {
     FILE *fp;
     if((fp = fopen(filename, "r")) == NULL) {
-        printf("File was not opened");
+        printf("File was not opened ");
         return -1;
     }
 
     for(int i = 0; i < number_of_strings; i++) {
         if((fgets(array[i], MAX_INPUT_STRING_SIZE, fp)) == NULL) {
-            printf("Cannot get strings");
+            printf("Cannot get strings ");
             return -1;
         }
     }
@@ -123,12 +120,12 @@ int reading_strings(const char *filename, strings_array_t array, int number_of_s
 int writing_strings(const char *filename, strings_array_t array, int number_of_strings) {
     FILE *mf;
     if((mf = fopen(filename, "w")) == NULL) {
-        printf("File was not opened");
+        printf("File was not opened ");
         return -1;
     }
     for(int i = 0; i < number_of_strings; i++) {
         if((fputs(array[i], mf)) == EOF) {
-            printf("Cannot write strings");
+            printf("Cannot write strings ");
             return -1;
         }
     }
