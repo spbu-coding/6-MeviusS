@@ -7,8 +7,6 @@ typedef int (*comparator_func_t)(const char*, const char*);
 typedef char** strings_array_t;
 typedef size_t array_size_t;
 
-void radix(strings_array_t, array_size_t, comparator_func_t);
-
 array_size_t search_the_max_length(strings_array_t strings, size_t strings_count) {
     size_t max_length = strlen(strings[0]);
     for (size_t i = 0; i < strings_count; i++) {
