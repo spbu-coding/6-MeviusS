@@ -1,52 +1,57 @@
-#include<stdlib.h>
-#include<stdio.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include "sortings.h"
-#define NUMBER_OF_ARGS 6
-#define MAX_FILENAME_LENGTH 100
 
-typedef void (*sort_function)(strings_array_t, array_size_t, comparator_func_t);
+#define MAX_FILENAME_LEN 100
+#define VALID_ARGUMENTS_NUM 6
 
-int asc_comparer_type(const char *string_1, const char *string_2) {
-    return strcmp(string_1, string_2);
-}
-int des_comparer_type(const char *string_1, const char *string_2) {
-    return -strcmp(string_1, string_2);
-}
+#define ERROR_CODE -1
+
+#define error(...) (fprintf(stderr, __VA_ARGS__))
+
+typedef void (*sort_func_t)(strings_array_t, array_size_t, comparator_func_t);
 
 typedef struct {
-    int number_of_strings;
-    char input_filename[MAX_FILENAME_LENGTH];
-    char output_filename[MAX_FILENAME_LENGTH];
-    sort_function sort_func;
+    int number_of_string;
+    char input_filename[MAX_FILENAME_LEN];
+    char output_filename[MAX_FILENAME_LEN];
+    sort_func_t sort_func;
     comparator_func_t comparer_type;
-} input_arguments;
+} arguments_t;
 
-int is_a_number(const char *array) {
+int is_a_number(const char *string) {
     for (int i = 0; ; i++) {
-        if (array[i] == 0)
+        if (string[i] == 0)
             return 1;
-        if (array[i] < '0' || array[i] > '9')
+        if (string[i] < '0' || string[i] > '9')
             return 0;
     }
 }
 
-int getting_the_arguments(int argc, char **argv, input_arguments *arguments) {
-    if (argc != NUMBER_OF_ARGS) {
-        printf("Incorrect number of parameters ");
-        return -1;
+int asc_comparer_type(const char *str1, const char *str2) {
+    return strcmp(str1, str2);
+}
+
+int des_comparer_type(const char *str1, const char *str2) {
+    return -strcmp(str1, str2);
+}
+
+int getting_the_arguments(int argc, char **argv, arguments_t *arguments) {
+    if (argc != VALID_ARGUMENTS_NUM) {
+        error("Wrong number of parameters\n");
+        return ERROR_CODE;
     }
     if (!is_a_number(argv[1])) {
-        printf("First parameter must be a positive number ");
-        return -1;
+        error("First argument must be number\n");
+        return ERROR_CODE;
     }
-
-    arguments->number_of_strings = (int) strtoll(argv[1], NULL, 10);
-    if (arguments->number_of_strings < 0) {
-        printf("First parameter must be a positive number ");
-        return -1;
+    arguments->number_of_string = (int)strtoll(argv[1], NULL, 10);
+    if (arguments->number_of_string < 0) {
+        error("Number of strings must be greater than 0\n");
+        return ERROR_CODE;
     }
-    strncpy(arguments->input_filename, argv[2], MAX_FILENAME_LENGTH);
-    strncpy(arguments->output_filename, argv[3], MAX_FILENAME_LENGTH);
+    strncpy(arguments->input_filename, argv[2], MAX_FILENAME_LEN);
+    strncpy(arguments->output_filename, argv[3], MAX_FILENAME_LEN);
     if (strcmp(argv[4], "bubble") == 0) {
         arguments->sort_func = bubble;
     } else if (strcmp(argv[4], "insertion") == 0) {
@@ -58,99 +63,110 @@ int getting_the_arguments(int argc, char **argv, input_arguments *arguments) {
     } else if (strcmp(argv[4], "radix") == 0) {
         arguments->sort_func = radix;
     } else {
-        printf("Incorrect sorting name ");
-        return -1;
+        error("You should enter valid name of sort\n");
+        return ERROR_CODE;
     }
     if (strcmp(argv[5], "asc") == 0) {
         arguments->comparer_type = asc_comparer_type;
     } else if (strcmp(argv[5], "des") == 0) {
         arguments->comparer_type = des_comparer_type;
     } else {
-        printf("Incorrect comparer type ");
-        return -1;
+        error("You should enter valid name of comparator\n");
+        return ERROR_CODE;
     }
     return 0;
 }
 
-void clear_memory(strings_array_t *array, array_size_t array_size) {
-    for(array_size_t i = 0; i < array_size; i++) {
+void clear_memory(strings_array_t *array, array_size_t size) {
+    for (array_size_t i = 0; i < size; ++i) {
         free((*array)[i]);
     }
     free(*array);
 }
 
-int allocate_memory(strings_array_t *array, int number_of_strings) {
-    if(((*array) = malloc(sizeof(char *) * number_of_strings)) == NULL) {
-        printf("Cannot allocate memory ");
-        return -1;
+int allocate_memory(strings_array_t *array, int number_of_string) {
+    (*array) = malloc(sizeof(char *) * number_of_string);
+    if ((*array) == NULL) {
+        error("Cannot allocate array\n");
+        return ERROR_CODE;
     }
-    for (int i = 0; i < number_of_strings; i++) {
-        if (((*array)[i] = malloc(sizeof(char) * MAX_INPUT_STRING_SIZE)) == NULL) {
-            printf("Cannot allocate memory ");
+    for (int i = 0; i < number_of_string; ++i) {
+        (*array)[i] = malloc(sizeof(char) * MAX_INPUT_STRING_SIZE);
+        if ((*array)[i] == NULL) {
+            error("Cannot allocate array[%d]\n", i);
             clear_memory(array, i);
-            return -1;
         }
     }
     return 0;
 }
 
-int reading_strings(const char *filename, strings_array_t array, int number_of_strings) {
-    FILE *fp;
-    if((fp = fopen(filename, "rt")) == NULL) {
-        printf("File was not opened ");
-        return -1;
+int reading_strings(const char *filename, strings_array_t strings, int number_of_strings) {
+    FILE *input = fopen(filename, "rt");
+    if (input == NULL) {
+        error("Cannot open file %s", filename);
+        return ERROR_CODE;
     }
-    for(int i = 0; i < number_of_strings; i++) {
-        if((fgets(array[i], MAX_INPUT_STRING_SIZE, fp)) == NULL) {
-            printf("Cannot get strings ");
-            return -1;
+    for (int i = 0; i < number_of_strings; ++i) {
+        if (fgets(strings[i], MAX_INPUT_STRING_SIZE, input) == NULL) {
+            error("Error of reading from %s", filename);
+            return ERROR_CODE;
         }
     }
-    char *last_string = array[number_of_strings - 1];
-    size_t last_string_length = strlen(last_string);
-    if(last_string[last_string_length - 1] != '\n'){
-        last_string[last_string_length] = '\n';
-        last_string[last_string_length + 1] = '\0';
+    char *last_string = strings[number_of_strings - 1];
+    size_t last_string_len = strlen(last_string);
+    if (last_string[last_string_len - 1] != '\n') {
+        last_string[last_string_len] = '\n';
+        last_string[last_string_len + 1] = '\0';
     }
-    fclose(fp);
+    fclose(input);
     return 0;
 }
 
-int writing_strings(const char *filename, strings_array_t array, int number_of_strings) {
-    FILE *mf;
-    if((mf = fopen(filename, "wt")) == NULL) {
-        printf("File was not opened ");
-        return -1;
+int writing_strings(const char *filename, strings_array_t strings, int number_of_strings) {
+    FILE *output = fopen(filename, "wt");
+    if (output == NULL) {
+        error("Cannot open file %s", filename);
+        return ERROR_CODE;
     }
-    for(int i = 0; i < number_of_strings; i++) {
-        if((fputs(array[i], mf)) == -1) {
-            printf("Cannot write strings ");
-            return -1;
+    for (int i = 0; i < number_of_strings; ++i) {
+        if (fputs(strings[i], output) == -1) {
+            error("Error of writing to %s", filename);
+            return ERROR_CODE;
         }
     }
-    fclose(mf);
+    fclose(output);
     return 0;
 }
 
-int main(int argc,char **argv) {
-    input_arguments arguments;
-    int input_result = getting_the_arguments(argc, argv, &arguments);
-    if (input_result != 0)
-        return input_result;
-    strings_array_t array = NULL;
-    int allocation_result = allocate_memory(&array, arguments.number_of_strings);
+int main(int argc, char *argv[]) {
+    arguments_t arguments;
+    int setting_result = getting_the_arguments(argc, argv, &arguments);
+    if (setting_result != 0) {
+        return setting_result;
+    }
+    if (arguments.number_of_string == 0) {
+        char *n[1] = {"\n"};
+        int writing_result = writing_strings(arguments.output_filename, n, 1);
+        if (writing_result != 0) {
+            error("Cannot write \\n to file %s\n", arguments.output_filename);
+            return ERROR_CODE;
+        }
+        return 0;
+    }
+    strings_array_t strings = NULL;
+    int allocation_result = allocate_memory(&strings, arguments.number_of_string);
     if (allocation_result != 0) {
         return allocation_result;
     }
-    int reading_result = reading_strings(arguments.input_filename, array, arguments.number_of_strings);
+    int reading_result = reading_strings(arguments.input_filename, strings, arguments.number_of_string);
     if (reading_result != 0) {
         return reading_result;
     }
-    arguments.sort_func(array, arguments.number_of_strings, arguments.comparer_type);
-    int writing_result = writing_strings(arguments.output_filename, array, arguments.number_of_strings);
+    arguments.sort_func(strings, arguments.number_of_string, arguments.comparer_type);
+    int writing_result = writing_strings(arguments.output_filename, strings, arguments.number_of_string);
     if (writing_result != 0) {
         return writing_result;
     }
-    clear_memory(&array, arguments.number_of_strings);
+    clear_memory(&strings, arguments.number_of_string);
     return 0;
 }
