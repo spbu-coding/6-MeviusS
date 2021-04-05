@@ -82,7 +82,6 @@ void clear_memory(strings_array_t *array, array_size_t array_size) {
 int allocate_memory(strings_array_t *array, int number_of_strings) {
     if(((*array) = malloc(sizeof(char *) * number_of_strings)) == NULL) {
         printf("Cannot allocate memory ");
-        free(*array);
         return -1;
     }
     for (int i = 0; i < number_of_strings; i++) {
